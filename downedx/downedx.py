@@ -10,11 +10,12 @@ from pprint import pprint as pp
 LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
 FILE_TYPES = ['pdf',
-              'srt',
+            #   'srt',
               'torrent',
             #   'mp4',
               '.py',
             #   'mp3',
+              'txt'
               'download']
 
 url = 'https://courses.edx.org/courses/HarvardX/CS50x3/2015/courseware/cdf0594e6a80402bbe902bb107fd2976/'
@@ -95,17 +96,33 @@ def find_all_download_links(client, menu_links):
     return dl_list
 
 
-def download(dl_links):
-    pass
+def mkdirs(link):
+    chapter = os.path.join(os.getcwd(), link[0])
+    sh = os.path.join(chapter, link[1])
+    section = os.path.join(chapter, link[2])
+    if os.path.exists(section):
+        os.mkdirs(section)
+    return section
 
-    # Assume downloads will be save to folders in the pwd
-    # for link in lis-of-links:
-        # if chapter/menu-item folder doesn't exit, create it/them
-        # if file-to-be-downloaded exists:
-            # continue
-        # Download each piece of content to the appropriate folder
-            # only allow max 1-3 concurrent downloads at once
-    pass
+def download(client, dl_links):
+    for link in dl_links:
+        path = mkdirs(link)
+        filename = link[3].split('.')[-1]
+        if os.path.isfile(os.path.join(path, filename)): # needs testing
+            continue
+        else:
+            try:
+                print("    Downloading {}".format(filename))
+                res = client.get(link[3])
+                res.raise_for_status()
+                dl_file = open(os.path.join(path, filename), 'wb')
+                for chunk in res.iter_content(100000):
+                    dl_file.write(chunk)
+                    print('#')
+            except Exception:
+                print(e)
+            finally:
+                dl_file.close()
 
 
 def run():
@@ -118,9 +135,8 @@ def run():
     # pp(menu_links) # TODO: remove this when done with it
     print('    finding all downloadable content...')
     dl_links = find_all_download_links(client, menu_links)
-    pp(dl_links)
-    #
-    # download(dl_links)
+
+    # download(client, dl_links)
 
 
 if __name__ == '__main__':
