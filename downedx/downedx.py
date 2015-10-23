@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 import sys
+import os
 import requests
 from getpass import getpass as gpass
 from bs4 import BeautifulSoup
+from html import unescape
 from pprint import pprint as pp
 
 LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
+FILE_TYPES = ['pdf',
+              'srt',
+              'torrent',
+            #   'mp4',
+              '.py',
+            #   'mp3',
+              'download']
 
 url = 'https://courses.edx.org/courses/HarvardX/CS50x3/2015/courseware/cdf0594e6a80402bbe902bb107fd2976/'
 
@@ -43,7 +52,7 @@ def build_menu_item_links(soup):
             sh = item.p.text.strip().replace(' ', '_') # TODO: remove commas and other punctuation
             href = item.a['href']
             href = 'https://courses.edx.org/' + href if 'http' not in href else href
-            href = 'http://www.example.com' # TODO: remove this line when ready for production!
+            # href = 'http://www.example.com' # TODO: remove this line when ready for production!
             menu_items[sh] = href
 
         link_map[heading] = menu_items
@@ -51,24 +60,44 @@ def build_menu_item_links(soup):
     return link_map
 
 
-def download():
-    client = edx_login()
-    soup = fetch_course_html(client)
+def find_all_download_links(client, menu_links):
+    dl_list = []
+    for chapter, menu in menu_links.items():
+        print('    scanning "{}"'.format(chapter))
+        for sh, href in menu.items():
+            print('      in "{}"'.format(sh))
+            r = client.get(href)
+            soup = BeautifulSoup(r.text, 'html.parser')
 
-    menu_links = build_menu_item_links(soup)
-    pp(menu_links) # TODO: remove this when done with it
+            # get the number of sections for this sh (subheading)
+            num_seq = len(soup.select('#sequence-list > li'))
+            print("        {} sections".format(num_seq))
+
+            # iterate through the sections to find links
+            for i in range(num_seq):
+                # unescape section contents to make it parseable by BeautifulSoup
+                seq_contents = [unescape(x.text.replace("'", '')) for x in \
+                                soup.select('#seq_contents_{}'.format(i))]
+                seq = BeautifulSoup(seq_contents[0], 'html.parser')
+
+                # If a video exists, add the link
+                video = seq.select('.video-download-button > a')
+                if len(video) >= 1:
+                    dl_list.append([chapter, sh, 'section_{}'.format(i), video[0]['href']])
+
+                # Get all links in the section body area
+                links = seq.find_all('a')
+                for link in links:
+                    if link['href'].endswith(tuple(FILE_TYPES)):
+                        dl_list.append([chapter, sh, 'section_{}'.format(i), link['href']])
+                        print('.', end='')
+                print("")
+    return dl_list
 
 
-    # for link in menu_links.values():
-    #     for sh, href in link.items():
-    #         sh_r = client.get(href) # TODO: REQUIRES the client to be authenticated on edX
-    #         sh_soup = BeautifulSoup(sh_r.text, 'html.parser')
+def download(dl_links):
+    pass
 
-            # make a dict of sequence-list links
-
-    # visit each sequence-list link, and create a list of links to downloadable content
-
-    """downloads"""
     # Assume downloads will be save to folders in the pwd
     # for link in lis-of-links:
         # if chapter/menu-item folder doesn't exit, create it/them
@@ -76,13 +105,22 @@ def download():
             # continue
         # Download each piece of content to the appropriate folder
             # only allow max 1-3 concurrent downloads at once
+    pass
+
+
+def run():
+    print("    logging in to edX...")
+    client = edx_login()
+    print("    fetching course content list...")
+    soup = fetch_course_html(client)
+    print("    building menu-item links...")
+    menu_links = build_menu_item_links(soup)
+    # pp(menu_links) # TODO: remove this when done with it
+    print('    finding all downloadable content...')
+    dl_links = find_all_download_links(client, menu_links)
+    pp(dl_links)
     #
-    # print "finished" when complete
-    # also print progress to the console
-
-
-
-
+    # download(dl_links)
 
 
 if __name__ == '__main__':
@@ -97,4 +135,4 @@ if __name__ == '__main__':
         password = sys.argv[2]
         url = sys.argv[3]
 
-    download()
+    run()
