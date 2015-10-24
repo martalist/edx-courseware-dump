@@ -2,10 +2,13 @@
 import sys
 import os
 import requests
+import pickle
 from getpass import getpass as gpass
 from bs4 import BeautifulSoup
 from html import unescape
 from pprint import pprint as pp
+
+from dl_list import DownloadList
 
 LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
@@ -15,8 +18,7 @@ FILE_TYPES = ['pdf',
             #   'mp4',
               '.py',
             #   'mp3',
-              'txt'
-              'download']
+              'txt']
 
 url = 'https://courses.edx.org/courses/HarvardX/CS50x3/2015/courseware/cdf0594e6a80402bbe902bb107fd2976/'
 
@@ -53,7 +55,6 @@ def build_menu_item_links(soup):
             sh = item.p.text.strip().replace(' ', '_') # TODO: remove commas and other punctuation
             href = item.a['href']
             href = 'https://courses.edx.org/' + href if 'http' not in href else href
-            # href = 'http://www.example.com' # TODO: remove this line when ready for production!
             menu_items[sh] = href
 
         link_map[heading] = menu_items
@@ -61,8 +62,9 @@ def build_menu_item_links(soup):
     return link_map
 
 
-def find_all_download_links(client, menu_links):
-    dl_list = []
+
+def find_all_download_links(client, menu_links, url, save=True):
+    dl_list = DownloadList(url)
     for chapter, menu in menu_links.items():
         print('    scanning "{}"'.format(chapter))
         for sh, href in menu.items():
@@ -89,10 +91,16 @@ def find_all_download_links(client, menu_links):
                 # Get all links in the section body area
                 links = seq.find_all('a')
                 for link in links:
-                    if link['href'].endswith(tuple(FILE_TYPES)):
+                    l = link['href']
+                    if l.endswith('.download'): l = l.rstrip('.download') # TODO: this isn't working, yet!
+                    if l.endswith(tuple(FILE_TYPES)):
                         dl_list.append([chapter, sh, 'section_{}'.format(i), link['href']])
                         print('.', end='')
                 print("")
+    if save:
+        fn = os.path.join(os.getcwd(), 'dl_links.pkl')
+        with open(fn, 'wb') as fh:
+            pickle.dump(dl_list, fh)
     return dl_list
 
 
@@ -105,9 +113,9 @@ def mkdirs(link):
     return section
 
 def download(client, dl_links):
-    for link in dl_links:
+    for i, link in enumerate(dl_links):
         path = mkdirs(link)
-        filename = link[3].split('.')[-1]
+        filename = '{}_{}'.format(i, os.path.split(link[3])[-1])
         if os.path.isfile(os.path.join(path, filename)): # needs testing
             continue
         else:
@@ -125,24 +133,27 @@ def download(client, dl_links):
                 dl_file.close()
 
 
-def run():
-    print("    logging in to edX...")
-    client = edx_login()
-    print("    fetching course content list...")
-    soup = fetch_course_html(client)
-    print("    building menu-item links...")
-    menu_links = build_menu_item_links(soup)
-    # pp(menu_links) # TODO: remove this when done with it
-    print('    finding all downloadable content...')
-    dl_links = find_all_download_links(client, menu_links)
+def run(saved_list=None):
+    if not saved_list:
+        print("    logging in to edX...")
+        client = edx_login()
+        print("    fetching course content list...")
+        soup = fetch_course_html(client)
+        print("    building menu-item links...")
+        menu_links = build_menu_item_links(soup)
+        # pp(menu_links) # TODO: remove this when done with it
+        print('    finding all downloadable content...')
+        dl_links = find_all_download_links(client, menu_links, url)
+    else:
+        dl_links = saved_list
+    pp(dl_links)
 
     # download(client, dl_links)
 
 
 if __name__ == '__main__':
+    saved_list = None
     if len(sys.argv) < 2:
-        # print("\n    You must provide 3 arguments: edx-email, edx-password, edx-course-url", '\n')
-        # sys.exit()
         email = input("Enter your edX account email: ")
         password = gpass("Enter your edX password: ")
         url = input("Course url: ")
@@ -150,5 +161,15 @@ if __name__ == '__main__':
         email = sys.argv[1]
         password = sys.argv[2]
         url = sys.argv[3]
-
-    run()
+    fname = os.path.join(os.getcwd(), 'dl_links.pkl')
+    if os.path.isfile(fname):
+        with open(fname, 'rb') as fh:
+            pkl_links = pickle.load(fh)
+        if url == pkl_links.url:
+            print("\nA list of download links already exits for this course.\nDo you want to use it?")
+            prompt = None
+            while prompt not in ['y', 'n']:
+                prompt = input("    Enter 'y' if yes, 'n' if you'd like to scrape all links again: ")
+                if prompt == 'y':
+                    saved_list = pkl_links
+    run(saved_list)
