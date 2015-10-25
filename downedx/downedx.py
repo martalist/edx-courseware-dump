@@ -98,7 +98,7 @@ def find_all_download_links(client, menu_links, url, save=True):
                         print('.', end='')
                 print("")
     if save:
-        fn = os.path.join(os.getcwd(), 'dl_links.pkl')
+        fn = os.path.join(os.getcwd(), dl_list.course + '_links.pkl')
         with open(fn, 'wb') as fh:
             pickle.dump(dl_list, fh)
     return dl_list
@@ -162,14 +162,18 @@ if __name__ == '__main__':
         password = sys.argv[2]
         url = sys.argv[3]
     fname = os.path.join(os.getcwd(), 'dl_links.pkl')
-    if os.path.isfile(fname):
-        with open(fname, 'rb') as fh:
-            pkl_links = pickle.load(fh)
-        if url == pkl_links.url:
-            print("\nA list of download links already exits for this course.\nDo you want to use it?")
-            prompt = None
-            while prompt not in ['y', 'n']:
-                prompt = input("    Enter 'y' if yes, 'n' if you'd like to scrape all links again: ")
-                if prompt == 'y':
-                    saved_list = pkl_links
+    pkl_files = [x for x in os.listdir(os.getcwd()) if x.endswith('.pkl')]
+    if len(pkl_files) > 0:
+        for pkl_file in pkl_files:
+            with open(pkl_file, 'rb') as fh:
+                pkl = pickle.load(fh)
+                if url == pkl.url:
+                    print("\nA list of download links already exits for this course."
+                            "Do you want to use it?")
+                    prompt = None
+                    while prompt not in ['y', 'n']:
+                        prompt = input("    Enter 'y' if yes, 'n' if you'd like to scrape all links again: ")
+                        if prompt == 'y':
+                            saved_list = pkl
+                    break
     run(saved_list)
