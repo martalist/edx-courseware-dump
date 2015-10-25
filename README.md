@@ -25,3 +25,9 @@ $ python3 downedx your@email.com yourpass https://courses.edx.org/path/to/course
 ```
 
 A directory will be created in the pwd, with all courseware downloaded to chapter/section subfolders.
+
+==
+
+You can change the file types that are downloaded by adding/removing lines from the FILE_TYPES constant.
+
+Note that the main content (video.mp4) will be downloaded even if "mp4" is removed from the constant.
