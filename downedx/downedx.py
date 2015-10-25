@@ -105,8 +105,9 @@ def find_all_download_links(client, menu_links, url, save=True):
     return dl_list
 
 
-def mkdirs(link):
-    chapter = os.path.join(os.getcwd(), link[0])
+def mkdirs(link, dl_links):
+    course = os.path.join(os.getcwd(), dl_links.course)
+    chapter = os.path.join(course, link[0])
     subheading = os.path.join(chapter, link[1])
     section = os.path.join(chapter, link[2])
     if not os.path.exists(section):
@@ -116,7 +117,7 @@ def mkdirs(link):
 
 def download(client, dl_links):
     for i, link in enumerate(dl_links):
-        path = mkdirs(link)
+        path = mkdirs(link, dl_links)
         filename = '{}_{}'.format(i, os.path.split(link[3])[-1])
         if os.path.isfile(os.path.join(path, filename)): # needs testing
             continue
