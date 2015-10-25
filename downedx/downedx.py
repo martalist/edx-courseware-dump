@@ -52,11 +52,11 @@ def build_menu_item_links(soup):
         menu_items = {}
         items = chapter.find_all("div", class_="menu-item")
         for item in items:
-            sh = item.p.text.strip().replace(' ', '_')
-            sh = DownloadList.replace_punctuation(sh)
+            subheading = item.p.text.strip().replace(' ', '_')
+            subheading = DownloadList.replace_punctuation(subheading)
             href = item.a['href']
             href = 'https://courses.edx.org/' + href if 'http' not in href else href
-            menu_items[sh] = href
+            menu_items[subheading] = href
 
         link_map[heading] = menu_items
 
@@ -68,12 +68,12 @@ def find_all_download_links(client, menu_links, url, save=True):
     dl_list = DownloadList(url)
     for chapter, menu in menu_links.items():
         print('    scanning "{}"'.format(chapter))
-        for sh, href in menu.items():
-            print('      in "{}"'.format(sh))
+        for subheading, href in menu.items():
+            print('      in "{}"'.format(subheading))
             r = client.get(href)
             soup = BeautifulSoup(r.text, 'html.parser')
 
-            # get the number of sections for this sh (subheading)
+            # get the number of sections for this subheading (subheading)
             num_seq = len(soup.select('#sequence-list > li'))
             print("        {} sections".format(num_seq))
 
@@ -87,7 +87,7 @@ def find_all_download_links(client, menu_links, url, save=True):
                 # If a video exists, add the link
                 video = seq.select('.video-download-button > a')
                 if len(video) >= 1:
-                    dl_list.append([chapter, sh, 'section_{}'.format(i), video[0]['href']])
+                    dl_list.append([chapter, subheading, 'section_{}'.format(i), video[0]['href']])
 
                 # Get all links in the section body area
                 links = seq.find_all('a')
@@ -95,7 +95,7 @@ def find_all_download_links(client, menu_links, url, save=True):
                     l = link['href']
                     if l.endswith('.download'): l = l.rstrip('.download') # TODO: this isn't working, yet!
                     if l.endswith(tuple(FILE_TYPES)):
-                        dl_list.append([chapter, sh, 'section_{}'.format(i), link['href']])
+                        dl_list.append([chapter, subheading, 'section_{}'.format(i), link['href']])
                         print('.', end='')
                 print("")
     if save:
@@ -107,7 +107,7 @@ def find_all_download_links(client, menu_links, url, save=True):
 
 def mkdirs(link):
     chapter = os.path.join(os.getcwd(), link[0])
-    sh = os.path.join(chapter, link[1])
+    subheading = os.path.join(chapter, link[1])
     section = os.path.join(chapter, link[2])
     if os.path.exists(section):
         os.mkdirs(section)
