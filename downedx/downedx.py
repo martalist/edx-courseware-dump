@@ -87,15 +87,15 @@ def find_all_download_links(client, menu_links, url, save=True):
                 # If a video exists, add the link
                 video = seq.select('.video-download-button > a')
                 if len(video) >= 1:
-                    dl_list.append([chapter, subheading, 'section_{}'.format(i), video[0]['href']])
+                    dl_list.append([chapter, subheading, 'section_{}'.format(i), video[0]['href'], "main_content"])
 
                 # Get all links in the section body area
                 links = seq.find_all('a')
                 for link in links:
-                    l = link['href']
-                    if l.endswith('.download'): l = l.rstrip('.download') # TODO: this isn't working, yet!
-                    if l.endswith(tuple(FILE_TYPES)):
-                        dl_list.append([chapter, subheading, 'section_{}'.format(i), link['href']])
+                    link = link['href']
+                    if link.endswith('.download'): link = link.rstrip('.download')
+                    if link.endswith(tuple(FILE_TYPES)):
+                        dl_list.append([chapter, subheading, 'section_{}'.format(i), link])
                         print('.', end='')
                 print("")
     if save:
