@@ -20,8 +20,6 @@ FILE_TYPES = ['pdf',
             #   'mp3',
               'txt']
 
-url = 'https://courses.edx.org/courses/HarvardX/CS50x3/2015/courseware/cdf0594e6a80402bbe902bb107fd2976/'
-
 
 def edx_login():
     client = requests.Session()
