@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-import sys
-import os
-import requests
-import pickle
-from getpass import getpass as gpass
+import os, requests, pickle
 from bs4 import BeautifulSoup
 from html import unescape
 from pprint import pprint as pp
@@ -16,12 +12,12 @@ FILE_TYPES = ['pdf',
             #   'srt',
             #   'torrent',
             #   'mp4',
-            #   '.py',
+              '.py',
             #   'mp3',
               'txt']
 
 
-def edx_login():
+def edx_login(email, password):
     client = requests.Session()
     client.get(REFERRER)
     csrftoken = client.cookies['csrftoken']
@@ -35,7 +31,7 @@ def edx_login():
     return client
 
 
-def fetch_course_html(client):
+def fetch_course_html(client, url):
     r = client.get(url)
     return BeautifulSoup(r.text, 'html.parser')
 
@@ -132,12 +128,12 @@ def download(client, dl_links):
                 raise Exception("Something went wrong with the download :(")
 
 
-def run(saved_list=None):
+def run(email, password, url, saved_list=None):
     print("    logging in to edX...")
-    client = edx_login()
+    client = edx_login(email, password)
     if not saved_list:
         print("    fetching course content list...")
-        soup = fetch_course_html(client)
+        soup = fetch_course_html(client, url)
 
         print("    building menu-item links...")
         menu_links = build_menu_item_links(soup)
@@ -149,31 +145,3 @@ def run(saved_list=None):
     # pp(dl_links)
 
     download(client, dl_links)
-
-
-if __name__ == '__main__':
-    saved_list = None
-    if len(sys.argv) < 2:
-        email = input("Enter your edX account email: ")
-        password = gpass("Enter your edX password: ")
-        url = DownloadList.check_url(input("Course url: "))
-    else:
-        email = sys.argv[1]
-        password = sys.argv[2]
-        url = DownloadList.check_url(sys.argv[3])
-
-    pkl_files = [x for x in os.listdir(os.getcwd()) if x.endswith('.pkl')]
-    if len(pkl_files) > 0:
-        for pkl_file in pkl_files:
-            with open(pkl_file, 'rb') as fh:
-                pkl = pickle.load(fh)
-                if url == pkl.url:
-                    print("\nA list of download links already exits for this course."
-                          "\nDo you want to use it?")
-                    prompt = None
-                    while prompt not in ['y', 'n']:
-                        prompt = input("    Enter 'y' if yes, 'n' if you'd like to scrape all links again: ")
-                        if prompt == 'y':
-                            saved_list = pkl
-                    break
-    run(saved_list)
