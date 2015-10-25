@@ -21,8 +21,13 @@ class DownloadList(list):
 
         if start and stop:
             course = '_'.join(url[start + 1:stop])
-            for i in string.punctuation:
-                if i not in ['_', '-']:
-                    course = course.replace(i, '-')
+            course = DownloadList.replace_punctuation(course)
             return course
         return "unknown"
+
+    @staticmethod
+    def replace_punctuation(text):
+        for i in string.punctuation:
+            if i not in ['_', '-']:
+                text = text.replace(i, '-')
+        return text

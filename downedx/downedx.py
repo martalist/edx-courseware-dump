@@ -52,7 +52,8 @@ def build_menu_item_links(soup):
         menu_items = {}
         items = chapter.find_all("div", class_="menu-item")
         for item in items:
-            sh = item.p.text.strip().replace(' ', '_') # TODO: remove commas and other punctuation
+            sh = item.p.text.strip().replace(' ', '_')
+            sh = DownloadList.replace_punctuation(sh)
             href = item.a['href']
             href = 'https://courses.edx.org/' + href if 'http' not in href else href
             menu_items[sh] = href
@@ -111,6 +112,7 @@ def mkdirs(link):
     if os.path.exists(section):
         os.mkdirs(section)
     return section
+
 
 def download(client, dl_links):
     for i, link in enumerate(dl_links):
