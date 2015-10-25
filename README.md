@@ -31,3 +31,9 @@ A directory will be created in the pwd, with all courseware downloaded to chapte
 You can change the file types that are downloaded by adding/removing lines from the FILE_TYPES constant.
 
 Note that the main content (video.mp4) will be downloaded even if "mp4" is removed from the constant.
+
+## Caching and existing files
+
+The first time you download from a course the list of files/links will be cached/saved to a .pkl file. On subsequent downloads you can skip the time consuming process of scraping the course chapters.
+
+Files that already exit (that have already been downloaded) should should not be downloaded a second time. 
