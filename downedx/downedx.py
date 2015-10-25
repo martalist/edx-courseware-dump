@@ -103,7 +103,7 @@ def mkdirs(link, dl_links):
     course = os.path.join(os.getcwd(), dl_links.course)
     chapter = os.path.join(course, link[0])
     subheading = os.path.join(chapter, link[1])
-    section = os.path.join(chapter, link[2])
+    section = os.path.join(subheading, link[2])
     if not os.path.exists(section):
         os.makedirs(section)
     return section
