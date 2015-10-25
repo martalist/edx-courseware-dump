@@ -109,8 +109,8 @@ def mkdirs(link):
     chapter = os.path.join(os.getcwd(), link[0])
     subheading = os.path.join(chapter, link[1])
     section = os.path.join(chapter, link[2])
-    if os.path.exists(section):
-        os.mkdirs(section)
+    if not os.path.exists(section):
+        os.makedirs(section)
     return section
 
 
@@ -125,20 +125,18 @@ def download(client, dl_links):
                 print("    Downloading {}".format(filename))
                 res = client.get(link[3])
                 res.raise_for_status()
-                dl_file = open(os.path.join(path, filename), 'wb')
-                for chunk in res.iter_content(100000):
-                    dl_file.write(chunk)
-                    print('#')
-            except Exception:
-                print(e)
-            finally:
-                dl_file.close()
+                with open(os.path.join(path, filename), 'wb') as dl_file:
+                    for chunk in res.iter_content(100000):
+                        dl_file.write(chunk)
+                        print('#')
+            except:
+                raise Exception("Something went wrong with the download :()")
 
 
 def run(saved_list=None):
+    print("    logging in to edX...")
+    client = edx_login()
     if not saved_list:
-        print("    logging in to edX...")
-        client = edx_login()
         print("    fetching course content list...")
         soup = fetch_course_html(client)
         print("    building menu-item links...")
@@ -148,9 +146,9 @@ def run(saved_list=None):
         dl_links = find_all_download_links(client, menu_links, url)
     else:
         dl_links = saved_list
-    pp(dl_links)
+    # pp(dl_links)
 
-    # download(client, dl_links)
+    download(client, dl_links)
 
 
 if __name__ == '__main__':
