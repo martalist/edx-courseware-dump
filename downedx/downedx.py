@@ -14,9 +14,9 @@ LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
 FILE_TYPES = ['pdf',
             #   'srt',
-              'torrent',
+            #   'torrent',
             #   'mp4',
-              '.py',
+            #   '.py',
             #   'mp3',
               'txt']
 
@@ -94,10 +94,10 @@ def find_all_download_links(client, menu_links, url, save=True):
                 for link in links:
                     link = link['href']
                     if link.endswith('.download'): link = link.rstrip('.download')
+                    if link[:4] != 'http': link = 'https://courses.edx.org' + link
                     if link.endswith(tuple(FILE_TYPES)):
                         dl_list.append([chapter, subheading, 'section_{}'.format(i), link])
                         print('.', end='')
-                print("")
     if save:
         fn = os.path.join(os.getcwd(), dl_list.course + '_links.pkl')
         with open(fn, 'wb') as fh:
@@ -126,12 +126,12 @@ def download(client, dl_links):
                 print("    Downloading {}".format(filename))
                 res = client.get(link[3])
                 res.raise_for_status()
+                print("    Saving {}\n".format(filename))
                 with open(os.path.join(path, filename), 'wb') as dl_file:
                     for chunk in res.iter_content(100000):
                         dl_file.write(chunk)
-                        print('#')
             except:
-                raise Exception("Something went wrong with the download :()")
+                raise Exception("Something went wrong with the download :(")
 
 
 def run(saved_list=None):
@@ -140,9 +140,10 @@ def run(saved_list=None):
     if not saved_list:
         print("    fetching course content list...")
         soup = fetch_course_html(client)
+
         print("    building menu-item links...")
         menu_links = build_menu_item_links(soup)
-        # pp(menu_links) # TODO: remove this when done with it
+
         print('    finding all downloadable content...')
         dl_links = find_all_download_links(client, menu_links, url)
     else:
@@ -157,12 +158,12 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         email = input("Enter your edX account email: ")
         password = gpass("Enter your edX password: ")
-        url = input("Course url: ")
+        url = DownloadList.check_url(input("Course url: "))
     else:
         email = sys.argv[1]
         password = sys.argv[2]
-        url = sys.argv[3]
-    fname = os.path.join(os.getcwd(), 'dl_links.pkl')
+        url = DownloadList.check_url(sys.argv[3])
+
     pkl_files = [x for x in os.listdir(os.getcwd()) if x.endswith('.pkl')]
     if len(pkl_files) > 0:
         for pkl_file in pkl_files:
@@ -170,7 +171,7 @@ if __name__ == '__main__':
                 pkl = pickle.load(fh)
                 if url == pkl.url:
                     print("\nA list of download links already exits for this course."
-                            "Do you want to use it?")
+                          "\nDo you want to use it?")
                     prompt = None
                     while prompt not in ['y', 'n']:
                         prompt = input("    Enter 'y' if yes, 'n' if you'd like to scrape all links again: ")

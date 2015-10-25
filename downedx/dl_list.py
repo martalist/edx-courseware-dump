@@ -6,9 +6,20 @@ class DownloadList(list):
 
     def __init__(self, url):
         super(DownloadList, self).__init__()
-        self.url = url
+        self.url = self.check_url(url)
         self.date = datetime.datetime.now()
         self.course = self.course_name(url)
+
+    @staticmethod
+    def check_url(url):
+        url = url.split('/')
+        if len(url) < 3 or any([
+            url[0] != 'https:',
+            url[2] != 'courses.edx.org',
+            'courseware' not in url,
+        ]):
+            raise ValueError("\n\nPlease enter a valid edX url, pointing to the course's courseware section.\n")
+        return '/'.join(url)
 
     @staticmethod
     def course_name(url):
