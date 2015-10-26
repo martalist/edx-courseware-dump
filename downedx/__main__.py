@@ -35,7 +35,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'history':
         print("{}. {}\t".format(i, pkl.course))
     while True:
         prompt = input('Enter the course number you\'d like to load, or "q" to quit: ')
-        if int(prompt) in range(0, i+1) or prompt == 'q':
+        if prompt == 'q' or int(prompt) in range(0, i+1):
             break
     if prompt == 'q':
         sys.exit()
