@@ -36,4 +36,10 @@ Note that the main content (video.mp4) will be downloaded even if "mp4" is remov
 
 The first time you download from a course the list of files/links will be cached/saved to a .pkl file. On subsequent downloads you can skip the time consuming process of scraping the course chapters.
 
-Files that already exit (that have already been downloaded) should should not be downloaded a second time. 
+To view (and select from) a list of courses you've run through the program previously, run:
+
+```
+$ python3 downedx history
+```
+
+Files that already exit (that have already been downloaded) should should not be downloaded a second time.
