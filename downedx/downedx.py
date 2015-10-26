@@ -100,10 +100,7 @@ def find_all_download_links(client, menu_links, url, save=True):
 
 
 def mkdirs(link, dl_links):
-    course = os.path.join(os.getcwd(), dl_links.course)
-    chapter = os.path.join(course, link[0])
-    subheading = os.path.join(chapter, link[1])
-    section = os.path.join(subheading, link[2])
+    section = os.path.join(os.getcwd(), dl_links.course, link[0], link[1], link[2])
     if not os.path.exists(section):
         os.makedirs(section)
     return section
