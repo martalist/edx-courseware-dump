@@ -9,6 +9,7 @@ from dl_list import DownloadList
 LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
 FILE_TYPES = ['pdf',
+              'zip',
             #   'srt',
             #   'torrent',
             #   'mp4',
