@@ -8,14 +8,14 @@ from dl_list import DownloadList
 
 LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
-FILE_TYPES = ['pdf',
-              'zip',
-            #   'srt',
-            #   'torrent',
-            #   'mp4',
+FILE_TYPES = ['.pdf',
+              '.zip',
+            #   '.srt',
+            #   '.torrent',
+            #   '.mp4',
               '.py',
-            #   'mp3',
-              'txt']
+            #   '.mp3',
+              '.txt']
 
 
 def edx_login(email, password):
@@ -108,9 +108,9 @@ def mkdirs(link, dl_links):
 
 
 def download(client, dl_links):
-    for i, link in enumerate(dl_links):
+    for link in dl_links:
         path = mkdirs(link, dl_links)
-        filename = '{}_{}'.format(i, os.path.split(link[3])[-1])
+        filename = os.path.split(link[3])[-1]
         if os.path.isfile(os.path.join(path, filename)): # needs testing
             continue
         else:
