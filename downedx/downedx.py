@@ -8,14 +8,16 @@ from dl_list import DownloadList
 
 LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
-FILE_TYPES = ['.pdf',
-              '.zip',
-            #   '.srt',
-              '.torrent',
-            #   '.mp4',
-              '.py',
-            #   '.mp3',
-              '.txt']
+FILE_TYPES = [
+                # '.pdf',
+                '.zip',
+                # '.srt',
+                # '.torrent',
+                # '.mp4',
+                # '.py',
+                # '.mp3',
+                # '.txt',
+                ]
 
 
 def edx_login(email, password):
@@ -90,9 +92,8 @@ def find_all_download_links(client, menu_links, url, save=True):
                     link = link['href']
                     if link.endswith('.download'): link = link.rstrip('.download')
                     if link[:4] != 'http': link = 'https://courses.edx.org' + link
-                    if link.endswith(tuple(FILE_TYPES)):
-                        dl_list.append([chapter, subheading, 'section_{}'.format(i), link])
-                        print('.', end='')
+                    dl_list.append([chapter, subheading, 'section_{}'.format(i), link])
+                    print('.', end='')
     if save:
         fn = os.path.join(os.getcwd(), dl_list.course + '_links.pkl')
         with open(fn, 'wb') as fh:
@@ -109,9 +110,10 @@ def mkdirs(link, dl_links):
 
 def download(client, dl_links):
     for link in dl_links:
-        path = mkdirs(link, dl_links)
         filename = os.path.split(link[3])[-1]
-        if os.path.isfile(os.path.join(path, filename)): # needs testing
+        if not filename.endswith(tuple(FILE_TYPES)): continue
+        path = mkdirs(link, dl_links)
+        if os.path.isfile(os.path.join(path, filename)):
             continue
         else:
             try:
