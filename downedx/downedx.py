@@ -11,7 +11,7 @@ REFERRER = 'https://courses.edx.org/login'
 FILE_TYPES = ['.pdf',
               '.zip',
             #   '.srt',
-            #   '.torrent',
+              '.torrent',
             #   '.mp4',
               '.py',
             #   '.mp3',
@@ -122,8 +122,9 @@ def download(client, dl_links):
                 with open(os.path.join(path, filename), 'wb') as dl_file:
                     for chunk in res.iter_content(100000):
                         dl_file.write(chunk)
-            except:
-                raise Exception("Something went wrong with the download :(")
+            except requests.exceptions.HTTPError:
+                with open('error_log_{}.log'.format(dl_links.course), 'a') as log:
+                    log.write('{},{},{},{}\n'.format(link[0], link[1], link[2], link[3]))
 
 
 def run(email, password, url, saved_list=None):
