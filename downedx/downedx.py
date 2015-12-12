@@ -9,14 +9,14 @@ from dl_list import DownloadList
 LOGIN_URL = 'https://courses.edx.org/user_api/v1/account/login_session/'
 REFERRER = 'https://courses.edx.org/login'
 FILE_TYPES = [
-                # '.pdf',
+                '.pdf',
                 '.zip',
                 # '.srt',
                 # '.torrent',
-                # '.mp4',
-                # '.py',
+                '.mp4',
+                '.py',
                 # '.mp3',
-                # '.txt',
+                '.txt',
                 ]
 
 
@@ -112,11 +112,13 @@ def mkdirs(link, dl_links):
 
 
 def download(client, dl_links):
+    existing = new = 0
     for link in dl_links:
         filename = os.path.split(link[3])[-1]
         if not filename.endswith(tuple(FILE_TYPES)): continue
         path = mkdirs(link, dl_links)
         if os.path.isfile(os.path.join(path, filename)):
+            existing += 1
             continue
         else:
             try:
@@ -127,9 +129,13 @@ def download(client, dl_links):
                 with open(os.path.join(path, filename), 'wb') as dl_file:
                     for chunk in res.iter_content(100000):
                         dl_file.write(chunk)
+                new += 1
             except requests.exceptions.HTTPError:
                 with open('error_log_{}.log'.format(dl_links.course), 'a') as log:
                     log.write('{},{},{},{}\n'.format(link[0], link[1], link[2], link[3]))
+    print("\nFinished downloading!",
+            "\n    {} files downloaded.".format(new),
+            "\n    {} files already existed.\n".format(existing))
 
 
 def run(email, password, url, saved_list=None):
