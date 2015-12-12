@@ -31,7 +31,7 @@ def edx_login(email, password):
         'csrfmiddlewaretoken': csrftoken,
     }
     login = client.post(LOGIN_URL, data=payload, headers={'Referer': REFERRER})
-    if login.text == 'Email or password is incorrect.':
+    if login.status_code == requests.codes.forbidden:
         print('\nEmail or password is incorrect. Please try again with valid edX credentials.\n')
         sys.exit(1)
     return client
