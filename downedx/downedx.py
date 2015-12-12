@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, requests, pickle
+import os, requests, pickle, sys
 from bs4 import BeautifulSoup
 from html import unescape
 from pprint import pprint as pp
@@ -28,7 +28,10 @@ def edx_login(email, password):
         'password': password,
         'csrfmiddlewaretoken': csrftoken,
     }
-    client.post(LOGIN_URL, data=payload, headers={'Referer': REFERRER})
+    login = client.post(LOGIN_URL, data=payload, headers={'Referer': REFERRER})
+    if login.text == 'Email or password is incorrect.':
+        print('\nEmail or password is incorrect. Please try again with valid edX credentials.\n')
+        sys.exit(1)
     return client
 
 
